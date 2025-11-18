@@ -128,6 +128,24 @@ function bdd_ite(i::BDDNode, t::BDDNode, e::BDDNode)::BDDNode
     return _wrap_node(m, p)
 end
 
+"""bdd_mk(i, t, e)
+
+Create a BDD node with top variable index `i` and children `t` (then) and `e` (else).
+Equivalent to `bdd_ite(var(m, i), t, e)`. Children must belong to the same manager.
+"""
+function bdd_mk(i::Integer, t::BDDNode, e::BDDNode)::BDDNode
+    t.m.ptr == e.m.ptr || error("Children must belong to same BDD manager")
+    m = t.m
+    # Get variable node pointer directly without creating temporary wrapper
+    var_ptr = ccall((:Cudd_bddIthVar, libcudd), Ptr{DdNode},
+                    (Ptr{DdManager}, Cint), m.ptr, i)
+    # Call ITE directly with the raw pointer
+    p = ccall((:Cudd_bddIte, libcudd), Ptr{DdNode},
+              (Ptr{DdManager}, Ptr{DdNode}, Ptr{DdNode}, Ptr{DdNode}),
+              m.ptr, var_ptr, t.ptr, e.ptr)
+    return _wrap_node(m, p)
+end
+
 """minterms(x, nvars)
 
 Return the number of minterms (as a floating-point value) of `x` assuming

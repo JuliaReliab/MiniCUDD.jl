@@ -15,3 +15,9 @@ include("test_manager_separation.jl")
 
 # DOT export tests
 include("test_dot_export.jl")
+
+# Operator override tests
+include("test_ops_overrides.jl")
+
+# Node builder helpers tests
+include("test_node_builders.jl")

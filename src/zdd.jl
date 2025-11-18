@@ -182,6 +182,24 @@ function bdd_to_zdd(zm::ZDDManager, b::BDDNode)::ZDDNode
     return _wrap_zdd_node(zm, p)
 end
 
+"""zdd_mk(i, t, e)
+
+Create a ZDD node with top variable index `i` and children `t` (then/include) and `e` (else/exclude).
+Equivalent to `zdd_ite(var(m, i), t, e)`. Children must belong to the same manager.
+"""
+function zdd_mk(i::Integer, t::ZDDNode, e::ZDDNode)::ZDDNode
+    t.m.ptr == e.m.ptr || error("Children must belong to same ZDD manager")
+    m = t.m
+    # Get variable node pointer directly without creating temporary wrapper
+    var_ptr = ccall((:Cudd_zddIthVar, libcudd), Ptr{DdNode},
+                    (Ptr{DdManager}, Cint), m.ptr, i)
+    # Call ITE directly with the raw pointer
+    p = ccall((:Cudd_zddIte, libcudd), Ptr{DdNode},
+              (Ptr{DdManager}, Ptr{DdNode}, Ptr{DdNode}, Ptr{DdNode}),
+              m.ptr, var_ptr, t.ptr, e.ptr)
+    return _wrap_zdd_node(m, p)
+end
+
 """zdd_to_bdd(bdd_mgr, zdd_node)
 
 Convert a ZDD node to a BDD node.

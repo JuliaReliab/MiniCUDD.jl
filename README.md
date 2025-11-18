@@ -107,7 +107,9 @@ API highlights
 - Variables: `var(mgr, i)`
 - Constants: `const1(mgr)`, `const0(mgr)`
 - Boolean ops: `bdd_and(a, b)`, `bdd_or(a, b)`, `bdd_xor(a, b)`, `bdd_implies(a, b)`, `bdd_ite(i, t, e)`
-  - Manager is automatically taken from the node arguments
+	- Manager is automatically taken from the node arguments
+- Node builder: `bdd_mk(i, t, e)` - creates a BDD node with variable index `i` and children `t` (then) and `e` (else). Internally uses ITE and CUDD's unique table for canonicalization and caching. Efficient for repeated calls.
+	- Example: `bdd_mk(0, const1(mgr), const0(mgr)) == var(mgr, 0)`
 - Utilities: `minterms(node, nvars)`, `dag_size(node)`, `node_index(node)`, `isconstant(node)`
 - Child accessors: `then_node(node)`, `else_node(node)`, `then_ptr(node)`, `else_ptr(node)`
 
@@ -117,15 +119,17 @@ API highlights
 - Variables: `var(mgr, i)` (unified with BDD)
 - Constants: `zdd_empty(mgr)`, `zdd_base(mgr)`
 - Set ops: `zdd_union(a, b)`, `zdd_intersect(a, b)`, `zdd_diff(a, b)`
-  - Manager is automatically taken from the node arguments
+	- Manager is automatically taken from the node arguments
+- Node builder: `zdd_mk(i, t, e)` - creates a ZDD node with variable index `i` and children `t` (include) and `e` (exclude). Internally uses ITE and CUDD's unique table for canonicalization and caching. Efficient for repeated calls.
+	- Example: `zdd_mk(0, zdd_base(mgr), zdd_empty(mgr)) == var(mgr, 0)`
 - Cofactors: `zdd_subset1(a, i)`, `zdd_subset0(a, i)`, `zdd_change(a, i)`, `zdd_ite(i, t, e)`
 - Utilities: `zdd_count(node)` (ZDD-specific), unified utilities work too: `dag_size`, `node_index`, `isconstant`
 - Child accessors: unified with BDD: `then_node(node)`, `else_node(node)`, `then_ptr(node)`, `else_ptr(node)`
 - Conversion: `bdd_to_zdd`, `zdd_to_bdd`
 
 ### Visualization
-- `to_dot(node; title="BDD")` - generate DOT language representation for Graphviz
-- `to_dot(io, node; title="BDD")` - write DOT representation to an IO stream
+- `to_dot(node; title="BDD", varlabels=nothing)` - generate DOT language representation for Graphviz
+- `to_dot(io, node; title="BDD", varlabels=nothing)` - write DOT representation to an IO stream
 
 Example:
 ```julia
@@ -134,8 +138,11 @@ v0 = var(mgr, 0)
 v1 = var(mgr, 1)
 f = bdd_and(v0, v1)
 
-# Generate DOT string
+# Generate DOT string (default numeric labels)
 dot_str = to_dot(f, title="My BDD")
+
+# Use custom variable labels
+dot_str2 = to_dot(f, title="x & y", varlabels=["x", "y", "z"])  # 1-based indexing
 
 # Or write to file
 open("graph.dot", "w") do io
@@ -147,10 +154,29 @@ quit(mgr)
 ```
 
 The generated graph shows:
-- Variable nodes as circles labeled with variable index (e.g., "x0")
-- Terminal nodes (0/1 for BDD, ∅/B for ZDD) as boxes
+- Variable nodes as circles labeled with index or custom label (no 'x' prefix)
+- Terminal nodes as squares: T/F (BDD), ∅/B (ZDD)
 - Then-edges (1-edges) as solid lines
 - Else-edges (0-edges) as dashed lines
+
+Notes:
+- `varlabels` must not contain reserved terminal labels: for BDD `T`/`F`, for ZDD `∅`/`B`.
+- If `varlabels` is provided, it is 1-indexed (`varlabels[i+1]` is used for variable `i`).
+
+### Operators
+
+#### BDD logical operators
+- `a & b` → `bdd_and(a, b)`
+- `a | b` → `bdd_or(a, b)`
+- `a ⊻ b` → `bdd_xor(a, b)`
+- `!a` → logical complement of `a` (via complemented edges)
+
+#### ZDD set operators
+- `union(a, b)` → `zdd_union(a, b)`
+- `intersect(a, b)` → `zdd_intersect(a, b)`
+- `setdiff(a, b)` → `zdd_diff(a, b)`
+- Shorthands: `a + b` (union), `a * b` (intersection), `a - b` (difference)
+- Unicode: `a ∪ b` (union), `a ∩ b` (intersection)
 
 ### Resource Management
 - `close!(node)` - explicitly release a node

@@ -56,12 +56,12 @@ export node_index, isconstant
 export then_ptr, else_ptr
 export close!, quit
 
-export bdd_and, bdd_or, bdd_xor, bdd_implies, bdd_ite
+export bdd_and, bdd_or, bdd_xor, bdd_implies, bdd_ite, bdd_mk
 export then_node, else_node
 
 export zdd_empty, zdd_base
 export zdd_union, zdd_intersect, zdd_diff
-export zdd_subset1, zdd_subset0, zdd_change, zdd_ite
+export zdd_subset1, zdd_subset0, zdd_change, zdd_ite, zdd_mk
 export zdd_count
 
 export bdd_to_zdd, zdd_to_bdd
@@ -190,6 +190,9 @@ include("zdd.jl")
 
 # Include common operations (works with both BDD and ZDD)
 include("common.jl")
+
+# Operator overrides (logical/set operators for BDD/ZDD)
+include("ops.jl")
 
 # Include DOT export for Graphviz
 include("dot.jl")
