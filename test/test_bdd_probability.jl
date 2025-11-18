@@ -1,11 +1,10 @@
-
 using Test
 using MiniCUDD
 
 """Compute probability of a BDD node assuming independent variable probabilities in `ps`.
 Memoized traversal over the BDD returned by MiniCUDD.
 """
-function bdd_probability(mgr::MiniCUDD.Manager, node::MiniCUDD.BDDNode, ps::Vector{Float64})
+function bdd_probability(mgr::MiniCUDD.BDDManager, node::MiniCUDD.BDDNode, ps::Vector{Float64})
     memo = Dict{Ptr{Cvoid}, Float64}()
     oneptr = MiniCUDD.const1(mgr).ptr
     function go(n::MiniCUDD.BDDNode)
@@ -19,8 +18,8 @@ function bdd_probability(mgr::MiniCUDD.Manager, node::MiniCUDD.BDDNode, ps::Vect
             return v
         end
         i = Int(MiniCUDD.node_index(n)) + 1
-        t = MiniCUDD.bdd_then(mgr, n)
-        e = MiniCUDD.bdd_else(mgr, n)
+        t = MiniCUDD.then_node(mgr, n)
+        e = MiniCUDD.else_node(mgr, n)
         pt = go(t)
         pe = go(e)
         pvar = ps[i]
@@ -31,8 +30,8 @@ function bdd_probability(mgr::MiniCUDD.Manager, node::MiniCUDD.BDDNode, ps::Vect
     return go(node)
 end
 
-@testset "BDD probability basic tests" begin
-    mgr = MiniCUDD.Manager(nvars=3)
+@testset "BDD probability calculations" begin
+    mgr = MiniCUDD.BDDManager(nvars=3)
     vars = [MiniCUDD.var(mgr, i-1) for i in 1:3]
     ps = [0.1, 0.2, 0.3]
 
@@ -57,5 +56,26 @@ end
     nested = MiniCUDD.bdd_and(mgr, vars[1], bor)
     @test isapprox(bdd_probability(mgr, nested, ps), 0.044; atol=1e-12)
 
+    MiniCUDD.quit(mgr)
+end
+
+@testset "BDD complex probability scenarios" begin
+    mgr = MiniCUDD.BDDManager(nvars=4)
+    vars = [MiniCUDD.var(mgr, i-1) for i in 1:4]
+    ps = [0.5, 0.5, 0.5, 0.5]  # All variables have 0.5 probability
+    
+    # Test with equal probabilities
+    # P(A AND B) = 0.5 * 0.5 = 0.25
+    and_ab = MiniCUDD.bdd_and(mgr, vars[1], vars[2])
+    @test isapprox(bdd_probability(mgr, and_ab, ps), 0.25; atol=1e-12)
+    
+    # P(A OR B) = 1 - (1-0.5)*(1-0.5) = 0.75
+    or_ab = MiniCUDD.bdd_or(mgr, vars[1], vars[2])
+    @test isapprox(bdd_probability(mgr, or_ab, ps), 0.75; atol=1e-12)
+    
+    # P(A XOR B) = 0.5 * (1-0.5) + (1-0.5) * 0.5 = 0.5
+    xor_ab = MiniCUDD.bdd_xor(mgr, vars[1], vars[2])
+    @test isapprox(bdd_probability(mgr, xor_ab, ps), 0.5; atol=1e-12)
+    
     MiniCUDD.quit(mgr)
 end

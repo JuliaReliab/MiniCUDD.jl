@@ -1,2 +1,14 @@
-include("test_base.jl")
-include("test_prob.jl")
+# BDD tests
+include("test_bdd_operations.jl")
+include("test_bdd_probability.jl")
+
+# ZDD tests
+include("test_zdd_operations.jl")
+
+# Unified API tests
+include("test_unified_api.jl")
+
+# API usage and type safety tests
+include("test_api_usage.jl")
+include("test_type_safety.jl")
+include("test_manager_separation.jl")

@@ -61,31 +61,75 @@ export DYLD_LIBRARY_PATH=$(pwd)/deps/usr/lib:$DYLD_LIBRARY_PATH  # macOS
 export LD_LIBRARY_PATH=$(pwd)/deps/usr/lib:$LD_LIBRARY_PATH    # Linux
 ```
 
-Quick example
--------------
+Quick examples
+--------------
+
+### BDD Example
 
 ```julia
 using MiniCUDD
 
-mgr = Manager(nvars=4)
+# Create a BDD manager
+mgr = BDDManager(nvars=4)
 v0 = var(mgr, 0)
 v1 = var(mgr, 1)
-f = bdd_and(mgr, v0, v1)
+
+# Operations can omit the manager - it's taken from the nodes
+f = bdd_and(v0, v1)  # Simpler! Manager not needed
 println("DAG size: ", dag_size(f))
-println("minterms: ", minterms(mgr, f, 2))
+println("minterms: ", minterms(f, 2))  # Manager not needed here either
+quit(mgr)
+```
+
+### ZDD Example
+
+```julia
+using MiniCUDD
+
+# Create a ZDD manager
+mgr = ZDDManager(nvars=4)
+z0 = var(mgr, 0)  # var() works with both BDD and ZDD managers
+z1 = var(mgr, 1)
+
+# Operations can omit the manager - it's taken from the nodes
+f = zdd_union(z0, z1)  # Simpler! Manager not needed
+println("ZDD DAG size: ", dag_size(f))  # dag_size() works with both types
+println("Set count: ", zdd_count(f))  # Manager not needed here either
 quit(mgr)
 ```
 
 API highlights
 --------------
-- Types: `Manager`, `BDDNode`
-- Create a manager: `Manager(; nvars=0, slots=256, cachesize=262144)`
+
+### BDD Operations
+- Types: `BDDManager`, `BDDNode`
+- Create a manager: `BDDManager(; nvars=0, slots=256, cachesize=262144)`
 - Variables: `var(mgr, i)`
 - Constants: `const1(mgr)`, `const0(mgr)`
-- Boolean ops: `bdd_and`, `bdd_or`, `bdd_xor`, `bdd_implies`, `bdd_ite`
-- Utilities: `minterms`, `dag_size`, `node_index`, `isconstant`
-- Child accessors: `bdd_then`, `bdd_else`, `then_ptr`, `else_ptr`
-- Resource management: `close!(node)`, `quit(mgr)`
+- Boolean ops: `bdd_and(a, b)`, `bdd_or(a, b)`, `bdd_xor(a, b)`, `bdd_implies(a, b)`, `bdd_ite(i, t, e)`
+  - Manager argument optional: `bdd_and(mgr, a, b)` also supported for backward compatibility
+- Utilities: `minterms(node, nvars)`, `dag_size(node)`, `node_index(node)`, `isconstant(node)`
+  - Manager argument optional: e.g., `minterms(mgr, node, nvars)` also supported
+- Child accessors: `then_node(node)`, `else_node(node)`, `then_ptr(node)`, `else_ptr(node)`
+  - Manager argument optional for then_node/else_node
+
+### ZDD Operations
+- Types: `ZDDManager`, `ZDDNode`
+- Create a manager: `ZDDManager(; nvars=0, slots=256, cachesize=262144)`
+- Variables: `var(mgr, i)` (unified with BDD)
+- Constants: `zdd_empty(mgr)`, `zdd_base(mgr)`
+- Set ops: `zdd_union(a, b)`, `zdd_intersect(a, b)`, `zdd_diff(a, b)`
+  - Manager argument optional: e.g., `zdd_union(mgr, a, b)` also supported
+- Cofactors: `zdd_subset1(a, i)`, `zdd_subset0(a, i)`, `zdd_change(a, i)`, `zdd_ite(i, t, e)`
+  - Manager argument optional for all
+- Utilities: `zdd_count(node)` (ZDD-specific), unified utilities work too: `dag_size`, `node_index`, `isconstant`
+  - Manager argument optional: e.g., `zdd_count(mgr, node)` also supported
+- Child accessors: unified with BDD: `then_node(node)`, `else_node(node)`, `then_ptr(node)`, `else_ptr(node)`
+- Conversion: `bdd_to_zdd`, `zdd_to_bdd`
+
+### Resource Management
+- `close!(node)` - explicitly release a node
+- `quit(mgr)` - free manager resources
 
 Tests
 -----

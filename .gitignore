@@ -1,0 +1,25 @@
+# Julia files
+*.jl.cov
+*.jl.*.cov
+*.jl.mem
+deps/deps.jl
+Manifest.toml
+
+# Build artifacts
+deps/build.log
+deps/downloads/
+deps/src/
+deps/usr/
+
+# macOS files
+.DS_Store
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
