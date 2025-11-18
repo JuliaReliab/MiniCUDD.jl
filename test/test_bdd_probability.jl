@@ -18,8 +18,8 @@ function bdd_probability(mgr::MiniCUDD.BDDManager, node::MiniCUDD.BDDNode, ps::V
             return v
         end
         i = Int(MiniCUDD.node_index(n)) + 1
-        t = MiniCUDD.then_node(mgr, n)
-        e = MiniCUDD.else_node(mgr, n)
+        t = MiniCUDD.then_node(n)
+        e = MiniCUDD.else_node(n)
         pt = go(t)
         pe = go(e)
         pvar = ps[i]
@@ -36,24 +36,24 @@ end
     ps = [0.1, 0.2, 0.3]
 
     # P(A AND B) = 0.1 * 0.2
-    and_ab = MiniCUDD.bdd_and(mgr, vars[1], vars[2])
+    and_ab = MiniCUDD.bdd_and(vars[1], vars[2])
     @test isapprox(bdd_probability(mgr, and_ab, ps), 0.02; atol=1e-12)
 
     # P(A OR B OR C) = 1 - (1-0.1)*(1-0.2)*(1-0.3) = 0.496
-    or_ab = MiniCUDD.bdd_or(mgr, vars[1], vars[2])
-    or_abc = MiniCUDD.bdd_or(mgr, or_ab, vars[3])
+    or_ab = MiniCUDD.bdd_or(vars[1], vars[2])
+    or_abc = MiniCUDD.bdd_or(or_ab, vars[3])
     @test isapprox(bdd_probability(mgr, or_abc, ps), 0.496; atol=1e-12)
 
     # P(at least 2 of {A,B,C}) = 0.098
-    ab = MiniCUDD.bdd_and(mgr, vars[1], vars[2])
-    ac = MiniCUDD.bdd_and(mgr, vars[1], vars[3])
-    bc = MiniCUDD.bdd_and(mgr, vars[2], vars[3])
-    k2 = MiniCUDD.bdd_or(mgr, MiniCUDD.bdd_or(mgr, ab, ac), bc)
+    ab = MiniCUDD.bdd_and(vars[1], vars[2])
+    ac = MiniCUDD.bdd_and(vars[1], vars[3])
+    bc = MiniCUDD.bdd_and(vars[2], vars[3])
+    k2 = MiniCUDD.bdd_or(MiniCUDD.bdd_or(ab, ac), bc)
     @test isapprox(bdd_probability(mgr, k2, ps), 0.098; atol=1e-12)
 
     # P(A AND (B OR C)) = 0.1 * (1 - (1-0.2)*(1-0.3)) = 0.044
-    bor = MiniCUDD.bdd_or(mgr, vars[2], vars[3])
-    nested = MiniCUDD.bdd_and(mgr, vars[1], bor)
+    bor = MiniCUDD.bdd_or(vars[2], vars[3])
+    nested = MiniCUDD.bdd_and(vars[1], bor)
     @test isapprox(bdd_probability(mgr, nested, ps), 0.044; atol=1e-12)
 
     MiniCUDD.quit(mgr)
@@ -66,15 +66,15 @@ end
     
     # Test with equal probabilities
     # P(A AND B) = 0.5 * 0.5 = 0.25
-    and_ab = MiniCUDD.bdd_and(mgr, vars[1], vars[2])
+    and_ab = MiniCUDD.bdd_and(vars[1], vars[2])
     @test isapprox(bdd_probability(mgr, and_ab, ps), 0.25; atol=1e-12)
     
     # P(A OR B) = 1 - (1-0.5)*(1-0.5) = 0.75
-    or_ab = MiniCUDD.bdd_or(mgr, vars[1], vars[2])
+    or_ab = MiniCUDD.bdd_or(vars[1], vars[2])
     @test isapprox(bdd_probability(mgr, or_ab, ps), 0.75; atol=1e-12)
     
     # P(A XOR B) = 0.5 * (1-0.5) + (1-0.5) * 0.5 = 0.5
-    xor_ab = MiniCUDD.bdd_xor(mgr, vars[1], vars[2])
+    xor_ab = MiniCUDD.bdd_xor(vars[1], vars[2])
     @test isapprox(bdd_probability(mgr, xor_ab, ps), 0.5; atol=1e-12)
     
     MiniCUDD.quit(mgr)

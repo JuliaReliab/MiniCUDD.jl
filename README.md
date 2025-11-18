@@ -107,11 +107,9 @@ API highlights
 - Variables: `var(mgr, i)`
 - Constants: `const1(mgr)`, `const0(mgr)`
 - Boolean ops: `bdd_and(a, b)`, `bdd_or(a, b)`, `bdd_xor(a, b)`, `bdd_implies(a, b)`, `bdd_ite(i, t, e)`
-  - Manager argument optional: `bdd_and(mgr, a, b)` also supported for backward compatibility
+  - Manager is automatically taken from the node arguments
 - Utilities: `minterms(node, nvars)`, `dag_size(node)`, `node_index(node)`, `isconstant(node)`
-  - Manager argument optional: e.g., `minterms(mgr, node, nvars)` also supported
 - Child accessors: `then_node(node)`, `else_node(node)`, `then_ptr(node)`, `else_ptr(node)`
-  - Manager argument optional for then_node/else_node
 
 ### ZDD Operations
 - Types: `ZDDManager`, `ZDDNode`
@@ -119,13 +117,40 @@ API highlights
 - Variables: `var(mgr, i)` (unified with BDD)
 - Constants: `zdd_empty(mgr)`, `zdd_base(mgr)`
 - Set ops: `zdd_union(a, b)`, `zdd_intersect(a, b)`, `zdd_diff(a, b)`
-  - Manager argument optional: e.g., `zdd_union(mgr, a, b)` also supported
+  - Manager is automatically taken from the node arguments
 - Cofactors: `zdd_subset1(a, i)`, `zdd_subset0(a, i)`, `zdd_change(a, i)`, `zdd_ite(i, t, e)`
-  - Manager argument optional for all
 - Utilities: `zdd_count(node)` (ZDD-specific), unified utilities work too: `dag_size`, `node_index`, `isconstant`
-  - Manager argument optional: e.g., `zdd_count(mgr, node)` also supported
 - Child accessors: unified with BDD: `then_node(node)`, `else_node(node)`, `then_ptr(node)`, `else_ptr(node)`
 - Conversion: `bdd_to_zdd`, `zdd_to_bdd`
+
+### Visualization
+- `to_dot(node; title="BDD")` - generate DOT language representation for Graphviz
+- `to_dot(io, node; title="BDD")` - write DOT representation to an IO stream
+
+Example:
+```julia
+mgr = BDDManager(nvars=3)
+v0 = var(mgr, 0)
+v1 = var(mgr, 1)
+f = bdd_and(v0, v1)
+
+# Generate DOT string
+dot_str = to_dot(f, title="My BDD")
+
+# Or write to file
+open("graph.dot", "w") do io
+    to_dot(io, f, title="My BDD")
+end
+
+# Render with Graphviz: dot -Tpng graph.dot -o graph.png
+quit(mgr)
+```
+
+The generated graph shows:
+- Variable nodes as circles labeled with variable index (e.g., "x0")
+- Terminal nodes (0/1 for BDD, ∅/B for ZDD) as boxes
+- Then-edges (1-edges) as solid lines
+- Else-edges (0-edges) as dashed lines
 
 ### Resource Management
 - `close!(node)` - explicitly release a node

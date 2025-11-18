@@ -12,3 +12,6 @@ include("test_unified_api.jl")
 include("test_api_usage.jl")
 include("test_type_safety.jl")
 include("test_manager_separation.jl")
+
+# DOT export tests
+include("test_dot_export.jl")

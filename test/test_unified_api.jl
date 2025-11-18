@@ -76,11 +76,11 @@ end
     
     bdd_x = var(bdd_mgr, 0)
     bdd_y = var(bdd_mgr, 1)
-    bdd_f = bdd_and(bdd_mgr, bdd_x, bdd_y)
+    bdd_f = bdd_and(bdd_x, bdd_y)
     
     zdd_x = var(zdd_mgr, 0)
     zdd_y = var(zdd_mgr, 1)
-    zdd_s = zdd_union(zdd_mgr, zdd_x, zdd_y)
+    zdd_s = zdd_union(zdd_x, zdd_y)
     
     # Both should return valid pointers
     @test then_ptr(bdd_f) != C_NULL
@@ -99,17 +99,17 @@ end
     
     bdd_x = var(bdd_mgr, 0)
     bdd_y = var(bdd_mgr, 1)
-    bdd_f = bdd_and(bdd_mgr, bdd_x, bdd_y)
+    bdd_f = bdd_and(bdd_x, bdd_y)
     
     zdd_x = var(zdd_mgr, 0)
     zdd_y = var(zdd_mgr, 1)
-    zdd_s = zdd_union(zdd_mgr, zdd_x, zdd_y)
+    zdd_s = zdd_union(zdd_x, zdd_y)
     
-    # Should return correct node types
-    @test isa(then_node(bdd_mgr, bdd_f), BDDNode)
-    @test isa(else_node(bdd_mgr, bdd_f), BDDNode)
-    @test isa(then_node(zdd_mgr, zdd_s), ZDDNode)
-    @test isa(else_node(zdd_mgr, zdd_s), ZDDNode)
+    # Should return correct node types (no manager argument needed)
+    @test isa(then_node(bdd_f), BDDNode)
+    @test isa(else_node(bdd_f), BDDNode)
+    @test isa(then_node(zdd_s), ZDDNode)
+    @test isa(else_node(zdd_s), ZDDNode)
     
     quit(bdd_mgr)
     quit(zdd_mgr)
@@ -123,9 +123,9 @@ end
     bdd_node = var(bdd_mgr, 0)
     zdd_node = var(zdd_mgr, 0)
     
-    # These should work - correct manager with correct node type
-    @test isa(then_node(bdd_mgr, bdd_node), BDDNode)
-    @test isa(then_node(zdd_mgr, zdd_node), ZDDNode)
+    # These should work - nodes contain their managers
+    @test isa(then_node(bdd_node), BDDNode)
+    @test isa(then_node(zdd_node), ZDDNode)
     
     quit(bdd_mgr)
     quit(zdd_mgr)

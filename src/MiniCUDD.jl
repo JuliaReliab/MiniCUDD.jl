@@ -66,6 +66,8 @@ export zdd_count
 
 export bdd_to_zdd, zdd_to_bdd
 
+export to_dot
+
 mutable struct DdManager end
 mutable struct DdNode    end
 
@@ -188,5 +190,8 @@ include("zdd.jl")
 
 # Include common operations (works with both BDD and ZDD)
 include("common.jl")
+
+# Include DOT export for Graphviz
+include("dot.jl")
 
 end

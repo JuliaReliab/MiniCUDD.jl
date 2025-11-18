@@ -32,24 +32,24 @@ end
     z = var(mgr, 2)
     
     # Test AND
-    f_and = bdd_and(mgr, x, y)
-    @test minterms(mgr, f_and, 2) == 1.0
+    f_and = bdd_and(x, y)
+    @test minterms(f_and, 2) == 1.0
     
     # Test OR
-    f_or = bdd_or(mgr, x, y)
-    @test minterms(mgr, f_or, 2) == 3.0
+    f_or = bdd_or(x, y)
+    @test minterms(f_or, 2) == 3.0
     
     # Test XOR
-    f_xor = bdd_xor(mgr, x, y)
-    @test minterms(mgr, f_xor, 2) == 2.0
+    f_xor = bdd_xor(x, y)
+    @test minterms(f_xor, 2) == 2.0
     
     # Test IMPLIES
-    f_implies = bdd_implies(mgr, x, y)
-    @test minterms(mgr, f_implies, 2) == 3.0
+    f_implies = bdd_implies(x, y)
+    @test minterms(f_implies, 2) == 3.0
     
     # Test ITE
-    f_ite = bdd_ite(mgr, x, y, z)
-    @test minterms(mgr, f_ite, 3) == 4.0
+    f_ite = bdd_ite(x, y, z)
+    @test minterms(f_ite, 3) == 4.0
     
     quit(mgr)
 end
@@ -59,7 +59,7 @@ end
     x = var(mgr, 0)
     y = var(mgr, 1)
     
-    f = bdd_and(mgr, x, y)
+    f = bdd_and(x, y)
     
     # Test DAG size
     @test dag_size(f) > 0
@@ -69,7 +69,7 @@ end
     @test node_index(f) == 0  # Root is x (index 0)
     
     # Test minterms
-    @test minterms(mgr, f, 2) == 1.0
+    @test minterms(f, 2) == 1.0
     
     # Test isconstant
     @test !isconstant(f)
@@ -85,7 +85,7 @@ end
     x1 = var(mgr, 1)
     
     # construct x0 ∧ x1
-    f_and = bdd_and(mgr, x0, x1)
+    f_and = bdd_and(x0, x1)
     
     # Test then/else pointers
     t = then_ptr(f_and)
@@ -96,13 +96,13 @@ end
     @test e == const0(mgr).ptr
     
     # Test then_node/else_node
-    tnode = then_node(mgr, f_and)
-    enode = else_node(mgr, f_and)
-    @test minterms(mgr, tnode, 2) == 2.0  # then is x1: 2 assignments over 2 vars (2^1)
-    @test minterms(mgr, enode, 2) == 0.0  # else is 0
+    tnode = then_node(f_and)
+    enode = else_node(f_and)
+    @test minterms(tnode, 2) == 2.0  # then is x1: 2 assignments over 2 vars (2^1)
+    @test minterms(enode, 2) == 0.0  # else is 0
     
     # Test with negated node
-    nf = bdd_ite(mgr, f_and, const0(mgr), const1(mgr))
+    nf = bdd_ite(f_and, const0(mgr), const1(mgr))
     
     # Complement pointer detection & inversion helper
     iscompl(p::Ptr{MiniCUDD.DdNode}) = (UInt(p) & 0x1) == 0x1
@@ -112,10 +112,10 @@ end
     @test then_ptr(nf) == compl(x1.ptr)
     @test else_ptr(nf) == const1(mgr).ptr
     
-    t2 = then_node(mgr, nf)
-    e2 = else_node(mgr, nf)
-    @test minterms(mgr, t2, 2) == 2.0
-    @test minterms(mgr, e2, 2) == 4.0  # constant 1 over 2 vars is 2^2 = 4
+    t2 = then_node(nf)
+    e2 = else_node(nf)
+    @test minterms(t2, 2) == 2.0
+    @test minterms(e2, 2) == 4.0  # constant 1 over 2 vars is 2^2 = 4
     
     quit(mgr)
 end
@@ -129,17 +129,17 @@ end
     # (x AND y) OR z
     # Truth table: z=1 OR (x=1 AND y=1) = 5 combinations
     # (0,0,1), (0,1,1), (1,0,1), (1,1,0), (1,1,1)
-    f1 = bdd_and(mgr, x, y)
-    f2 = bdd_or(mgr, f1, z)
-    @test minterms(mgr, f2, 3) == 5.0
+    f1 = bdd_and(x, y)
+    f2 = bdd_or(f1, z)
+    @test minterms(f2, 3) == 5.0
     
     # x XOR (y AND z)
     # XOR is true when exactly one operand is true
     # x=1 AND NOT(y AND z) OR x=0 AND (y AND z)
     # = 4 combinations
-    f3 = bdd_and(mgr, y, z)
-    f4 = bdd_xor(mgr, x, f3)
-    @test minterms(mgr, f4, 3) == 4.0
+    f3 = bdd_and(y, z)
+    f4 = bdd_xor(x, f3)
+    @test minterms(f4, 3) == 4.0
     
     quit(mgr)
 end

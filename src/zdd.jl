@@ -70,10 +70,8 @@ function zdd_base(m::ZDDManager; take_ref::Bool=false)::ZDDNode
 end
 
 """zdd_union(a, b)
-zdd_union(mgr, a, b)
 
 Return the ZDD representing the union of sets `a` and `b`.
-If manager is not provided, it is taken from the first node.
 """
 function zdd_union(a::ZDDNode, b::ZDDNode)::ZDDNode
     m = a.m
@@ -82,13 +80,10 @@ function zdd_union(a::ZDDNode, b::ZDDNode)::ZDDNode
               m.ptr, a.ptr, b.ptr)
     return _wrap_zdd_node(m, p)
 end
-zdd_union(m::ZDDManager, a::ZDDNode, b::ZDDNode)::ZDDNode = zdd_union(a, b)
 
 """zdd_intersect(a, b)
-zdd_intersect(mgr, a, b)
 
 Return the ZDD representing the intersection of sets `a` and `b`.
-If manager is not provided, it is taken from the first node.
 """
 function zdd_intersect(a::ZDDNode, b::ZDDNode)::ZDDNode
     m = a.m
@@ -97,13 +92,10 @@ function zdd_intersect(a::ZDDNode, b::ZDDNode)::ZDDNode
               m.ptr, a.ptr, b.ptr)
     return _wrap_zdd_node(m, p)
 end
-zdd_intersect(m::ZDDManager, a::ZDDNode, b::ZDDNode)::ZDDNode = zdd_intersect(a, b)
 
 """zdd_diff(a, b)
-zdd_diff(mgr, a, b)
 
 Return the ZDD representing the set difference `a - b` (elements in `a` but not in `b`).
-If manager is not provided, it is taken from the first node.
 """
 function zdd_diff(a::ZDDNode, b::ZDDNode)::ZDDNode
     m = a.m
@@ -112,14 +104,11 @@ function zdd_diff(a::ZDDNode, b::ZDDNode)::ZDDNode
               m.ptr, a.ptr, b.ptr)
     return _wrap_zdd_node(m, p)
 end
-zdd_diff(m::ZDDManager, a::ZDDNode, b::ZDDNode)::ZDDNode = zdd_diff(a, b)
 
 """zdd_subset1(a, i)
-zdd_subset1(mgr, a, i)
 
 Return the ZDD representing the subset of `a` containing element `i`.
 This is the cofactor operation: elements that must include variable i.
-If manager is not provided, it is taken from the node.
 """
 function zdd_subset1(a::ZDDNode, i::Integer)::ZDDNode
     m = a.m
@@ -128,14 +117,11 @@ function zdd_subset1(a::ZDDNode, i::Integer)::ZDDNode
               m.ptr, a.ptr, i)
     return _wrap_zdd_node(m, p)
 end
-zdd_subset1(m::ZDDManager, a::ZDDNode, i::Integer)::ZDDNode = zdd_subset1(a, i)
 
 """zdd_subset0(a, i)
-zdd_subset0(mgr, a, i)
 
 Return the ZDD representing the subset of `a` not containing element `i`.
 This is the cofactor operation: elements that must not include variable i.
-If manager is not provided, it is taken from the node.
 """
 function zdd_subset0(a::ZDDNode, i::Integer)::ZDDNode
     m = a.m
@@ -144,14 +130,11 @@ function zdd_subset0(a::ZDDNode, i::Integer)::ZDDNode
               m.ptr, a.ptr, i)
     return _wrap_zdd_node(m, p)
 end
-zdd_subset0(m::ZDDManager, a::ZDDNode, i::Integer)::ZDDNode = zdd_subset0(a, i)
 
 """zdd_change(a, i)
-zdd_change(mgr, a, i)
 
 Return the ZDD obtained by changing the presence of element `i` in all sets of `a`.
 Sets containing `i` will not contain it, and sets not containing `i` will contain it.
-If manager is not provided, it is taken from the node.
 """
 function zdd_change(a::ZDDNode, i::Integer)::ZDDNode
     m = a.m
@@ -160,13 +143,10 @@ function zdd_change(a::ZDDNode, i::Integer)::ZDDNode
               m.ptr, a.ptr, i)
     return _wrap_zdd_node(m, p)
 end
-zdd_change(m::ZDDManager, a::ZDDNode, i::Integer)::ZDDNode = zdd_change(a, i)
 
 """zdd_ite(i, t, e)
-zdd_ite(mgr, i, t, e)
 
 Return the ZDD if-then-else: if `i` then `t` else `e`.
-If manager is not provided, it is taken from the first node.
 """
 function zdd_ite(i::ZDDNode, t::ZDDNode, e::ZDDNode)::ZDDNode
     m = i.m
@@ -175,20 +155,16 @@ function zdd_ite(i::ZDDNode, t::ZDDNode, e::ZDDNode)::ZDDNode
               m.ptr, i.ptr, t.ptr, e.ptr)
     return _wrap_zdd_node(m, p)
 end
-zdd_ite(m::ZDDManager, i::ZDDNode, t::ZDDNode, e::ZDDNode)::ZDDNode = zdd_ite(i, t, e)
 
 
 
 """zdd_count(z)
-zdd_count(mgr, z)
 
 Return the number of sets (combinations) in the ZDD `z` as a floating-point value.
-If manager is not provided, it is taken from the node.
 """
 zdd_count(z::ZDDNode)::Float64 =
     ccall((:Cudd_zddCountDouble, libcudd), Cdouble,
           (Ptr{DdManager}, Ptr{DdNode}), z.m.ptr, z.ptr)
-zdd_count(m::ZDDManager, z::ZDDNode)::Float64 = zdd_count(z)
 
 
 

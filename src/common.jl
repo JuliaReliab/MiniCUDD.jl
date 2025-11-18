@@ -46,40 +46,32 @@ end
 # ============================================================================
 
 """then_node(node)
-then_node(mgr, node)
 
 Return the node corresponding to the then-child (1-edge) of `node`.
-If manager is not provided, it is taken from the node.
 """
 function then_node(n::BDDNode)::BDDNode
     p = then_ptr(n)
     return _wrap_node(n.m, p; ref=false, manage=false)
 end
-then_node(m::BDDManager, n::BDDNode)::BDDNode = then_node(n)
 
 function then_node(n::ZDDNode)::ZDDNode
     p = then_ptr(n)
     return _wrap_zdd_node(n.m, p; ref=false, manage=false)
 end
-then_node(m::ZDDManager, n::ZDDNode)::ZDDNode = then_node(n)
 
 """else_node(node)
-else_node(mgr, node)
 
 Return the node corresponding to the else-child (0-edge) of `node`.
-If manager is not provided, it is taken from the node.
 """
 function else_node(n::BDDNode)::BDDNode
     p = else_ptr(n)
     return _wrap_node(n.m, p; ref=false, manage=false)
 end
-else_node(m::BDDManager, n::BDDNode)::BDDNode = else_node(n)
 
 function else_node(n::ZDDNode)::ZDDNode
     p = else_ptr(n)
     return _wrap_zdd_node(n.m, p; ref=false, manage=false)
 end
-else_node(m::ZDDManager, n::ZDDNode)::ZDDNode = else_node(n)
 
 # ============================================================================
 # Utility functions

@@ -68,10 +68,8 @@ function const0(m::BDDManager; take_ref::Bool=false)::BDDNode
 end
 
 """bdd_and(a, b)
-bdd_and(mgr, a, b)
 
 Return the BDD representing logical AND of `a` and `b`.
-If manager is not provided, it is taken from the first node.
 """
 function bdd_and(a::BDDNode, b::BDDNode)::BDDNode
     m = a.m
@@ -80,13 +78,10 @@ function bdd_and(a::BDDNode, b::BDDNode)::BDDNode
               m.ptr, a.ptr, b.ptr)
     return _wrap_node(m, p)
 end
-bdd_and(m::BDDManager, a::BDDNode, b::BDDNode)::BDDNode = bdd_and(a, b)
 
 """bdd_or(a, b)
-bdd_or(mgr, a, b)
 
 Return the BDD representing logical OR of `a` and `b`.
-If manager is not provided, it is taken from the first node.
 """
 function bdd_or(a::BDDNode, b::BDDNode)::BDDNode
     m = a.m
@@ -95,13 +90,10 @@ function bdd_or(a::BDDNode, b::BDDNode)::BDDNode
               m.ptr, a.ptr, b.ptr)
     return _wrap_node(m, p)
 end
-bdd_or(m::BDDManager, a::BDDNode, b::BDDNode)::BDDNode = bdd_or(a, b)
 
 """bdd_xor(a, b)
-bdd_xor(mgr, a, b)
 
 Return the BDD representing logical XOR of `a` and `b`.
-If manager is not provided, it is taken from the first node.
 """
 function bdd_xor(a::BDDNode, b::BDDNode)::BDDNode
     m = a.m
@@ -110,13 +102,10 @@ function bdd_xor(a::BDDNode, b::BDDNode)::BDDNode
               m.ptr, a.ptr, b.ptr)
     return _wrap_node(m, p)
 end
-bdd_xor(m::BDDManager, a::BDDNode, b::BDDNode)::BDDNode = bdd_xor(a, b)
 
 """bdd_implies(a, b)
-bdd_implies(mgr, a, b)
 
 Return the BDD representing logical implication `a => b`.
-If manager is not provided, it is taken from the first node.
 """
 function bdd_implies(a::BDDNode, b::BDDNode)::BDDNode
     m = a.m
@@ -126,13 +115,10 @@ function bdd_implies(a::BDDNode, b::BDDNode)::BDDNode
               m.ptr, a.ptr, b.ptr, onep)
     return _wrap_node(m, p)
 end
-bdd_implies(m::BDDManager, a::BDDNode, b::BDDNode)::BDDNode = bdd_implies(a, b)
 
 """bdd_ite(i, t, e)
-bdd_ite(mgr, i, t, e)
 
 Return the if-then-else BDD: `i ? t : e`.
-If manager is not provided, it is taken from the first node.
 """
 function bdd_ite(i::BDDNode, t::BDDNode, e::BDDNode)::BDDNode
     m = i.m
@@ -141,16 +127,12 @@ function bdd_ite(i::BDDNode, t::BDDNode, e::BDDNode)::BDDNode
               m.ptr, i.ptr, t.ptr, e.ptr)
     return _wrap_node(m, p)
 end
-bdd_ite(m::BDDManager, i::BDDNode, t::BDDNode, e::BDDNode)::BDDNode = bdd_ite(i, t, e)
 
 """minterms(x, nvars)
-minterms(mgr, x, nvars)
 
 Return the number of minterms (as a floating-point value) of `x` assuming
 `nvars` variables. This is a wrapper around `Cudd_CountMinterm`.
-If manager is not provided, it is taken from the node.
 """
 minterms(x::BDDNode, nvars::Integer)::Float64 =
     ccall((:Cudd_CountMinterm, libcudd), Cdouble,
           (Ptr{DdManager}, Ptr{DdNode}, Cint), x.m.ptr, x.ptr, nvars)
-minterms(m::BDDManager, x::BDDNode, nvars::Integer)::Float64 = minterms(x, nvars)
