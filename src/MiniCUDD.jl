@@ -153,6 +153,18 @@ function quit(m::AbstractManager)
     nothing
 end
 
+"""length(manager)
+
+Return the total number of nodes currently in the manager's unique table.
+"""
+function Base.length(m::BDDManager)
+    return Int(ccall((:Cudd_ReadNodeCount, libcudd), Clong, (Ptr{DdManager},), m.ptr))
+end
+
+function Base.length(m::ZDDManager)
+    return Int(ccall((:Cudd_ReadNodeCount, libcudd), Clong, (Ptr{DdManager},), m.ptr))
+end
+
 # Forward declarations of node types (defined in respective files)
 """A managed BDD node.
 

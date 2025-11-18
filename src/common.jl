@@ -110,3 +110,15 @@ end
 function isconstant(n::ZDDNode)::Bool
     return ccall((:Cudd_IsConstant, libcudd), Cint, (Ptr{DdNode},), n.ptr) != 0
 end
+
+# ============================================================================
+# Base overrides
+# ============================================================================
+
+"""length(node)
+
+Return the DAG size (node count) of the given `BDDNode` or `ZDDNode`.
+Equivalent to `dag_size(node)`.
+"""
+Base.length(n::BDDNode) = Int(dag_size(n))
+Base.length(n::ZDDNode) = Int(dag_size(n))
