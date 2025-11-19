@@ -52,7 +52,7 @@ export BDDManager, ZDDManager
 export BDDNode, ZDDNode
 export var, const1, const0
 export minterms, dag_size
-export node_index, isconstant
+export node_index, node_level, isconstant
 export then_ptr, else_ptr
 export close!, quit
 

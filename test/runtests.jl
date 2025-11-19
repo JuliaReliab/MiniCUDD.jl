@@ -21,3 +21,6 @@ include("test_ops_overrides.jl")
 
 # Node builder helpers tests
 include("test_node_builders.jl")
+
+# Node level tests
+include("test_node_level.jl")

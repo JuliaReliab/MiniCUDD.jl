@@ -99,6 +99,26 @@ function node_index(n::ZDDNode)::Cint
     return ccall((:Cudd_NodeReadIndex, libcudd), Cint, (Ptr{DdNode},), n.ptr)
 end
 
+"""node_level(node)
+
+Return the current level (position in the variable ordering) of the variable
+tested at the root of `node`.
+
+For BDD nodes this queries `Cudd_ReadPerm`, for ZDD nodes `Cudd_ReadPermZdd`.
+Terminal (constant) nodes return `-1`.
+"""
+function node_level(n::BDDNode)::Cint
+    isconstant(n) && return Cint(-1)
+    idx = node_index(n)
+    return ccall((:Cudd_ReadPerm, libcudd), Cint, (Ptr{DdManager}, Cint), n.m.ptr, idx)
+end
+
+function node_level(n::ZDDNode)::Cint
+    isconstant(n) && return Cint(-1)
+    idx = node_index(n)
+    return ccall((:Cudd_ReadPermZdd, libcudd), Cint, (Ptr{DdManager}, Cint), n.m.ptr, idx)
+end
+
 """isconstant(node)
 
 Return true if `node` is a terminal constant node.
