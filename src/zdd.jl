@@ -40,8 +40,9 @@ Return the ZDD variable `i` from the manager `mgr` as a `ZDDNode`.
 This creates a ZDD representing the set containing only the singleton set {i}.
 """
 function var(m::ZDDManager, i::Integer)::ZDDNode
-    p = ccall((:Cudd_zddIthVar, libcudd), Ptr{DdNode}, (Ptr{DdManager}, Cint), m.ptr, i)
-    return _wrap_zdd_node(m, p)
+    base_node = zdd_base(m)
+    bdd_change_node = zdd_change(base_node, i)
+    return bdd_change_node
 end
 
 """zdd_empty(mgr; take_ref=false)

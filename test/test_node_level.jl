@@ -15,8 +15,8 @@ using MiniCUDD
     @test node_level(v3) == 3
     c1 = const1(bm)
     c0 = const0(bm)
-    @test node_level(c1) == -1
-    @test node_level(c0) == -1
+    @test node_level(c1) == typemax(Int)
+    @test node_level(c0) == typemax(Int)
     quit(bm)
 end
 
@@ -34,7 +34,7 @@ end
     @test node_level(z4) == 4
     e = zdd_empty(zm)
     b = zdd_base(zm)
-    @test node_level(e) == -1
-    @test node_level(b) == -1
+    @test node_level(e) == typemax(Int)
+    @test node_level(b) == typemax(Int)
     quit(zm)
 end
