@@ -1,32 +1,37 @@
 using MiniCUDD
 
-const NodeId = Ptr{MiniCUDD.DdNode}
+const NodeId = UInt
 
 function zdd_uncovered(F::ZDDNode, G::ZDDNode, memo::Dict{Tuple{NodeId, NodeId}, ZDDNode})::ZDDNode
     F.m === G.m || error("ZDD managers must match")
-    m = F.m
-    empty_node = zdd_empty(m)
-    base_node = zdd_base(m)
+    mgr = F.m
+    empty_node = zdd_empty(mgr)
+    empty_id = node_id(empty_node)
+    base_node = zdd_base(mgr)
+    base_id = node_id(base_node)
 
     function _uncovered(f::ZDDNode, g::ZDDNode)::ZDDNode
-        (f.ptr == empty_node.ptr) && return empty_node
-        (g.ptr == empty_node.ptr) && return f
-        (g.ptr == base_node.ptr)  && return empty_node
-        if f.ptr == g.ptr
+        fid = node_id(f)
+        gid = node_id(g)
+
+        (fid == empty_id) && return empty_node
+        (gid == empty_id) && return f
+        (gid == base_id)  && return empty_node
+        if fid == gid
             return empty_node
         end
 
-        key = (f.ptr, g.ptr)
+        key = (fid, gid)
         get!(memo, key) do
             f_level = node_level(f)
             g_level = node_level(g)
-            if f_level > g_level # ZDD tree of f is higher than g
+            if f_level < g_level
                 f_then = then_node(f)
                 f_else = else_node(f)
                 low = _uncovered(f_else, g)
                 high = _uncovered(f_then, g)
                 zdd_mk(node_index(f), high, low)
-            elseif f_level < g_level # ZDD tree of g is higher than f
+            elseif f_level > g_level
                 g_else = else_node(g)
                 _uncovered(f, g_else)
             else # level_f == level_g
@@ -56,20 +61,26 @@ end
 # The set {1} is not covered.
 # Result should be {{1}}.
 if abspath(PROGRAM_FILE) == @__FILE__
-        m = ZDDManager(nvars=4)
+        m = ZDDManager(nvars=3)
         base = zdd_base(m)
         
         # Create singletons: {0}, {1}, {2}
         s0 = zdd_change(base, 0)  # {0}
         s1 = zdd_change(base, 1)  # {1}
         s2 = zdd_change(base, 2)  # {2}
-        s02 = zdd_change(zdd_change(base, 0), 2)  # {0,2}
+        s02 = zdd_change(s0, 2)  # {0,2}
 
         F = zdd_union(zdd_union(s0, s1), s02)  # {{0},{1},{0,2}}
         G = zdd_union(s0, s2)                  # {{0},{2}}
 
         memo = Dict{Tuple{NodeId, NodeId}, ZDDNode}()
         U = zdd_uncovered(F, G, memo)                        # {{1}}
+
+        println("DOT representations:")
+        println("\nF = {{0},{1},{0,2}}:")
+        println(to_dot(F, title="F"))
+        println("\nG = {{0},{2}}:")
+        println(to_dot(G, title="G"))
 
         println("Counts: F=$(zdd_count(F)) G=$(zdd_count(G)) Uncovered=$(zdd_count(U))")
         println(to_dot(U, title="Uncovered(F,G)"))

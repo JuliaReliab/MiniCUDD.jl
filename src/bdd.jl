@@ -134,15 +134,10 @@ Create a BDD node with top variable index `i` and children `t` (then) and `e` (e
 Equivalent to `bdd_ite(var(m, i), t, e)`. Children must belong to the same manager.
 """
 function bdd_mk(i::Integer, t::BDDNode, e::BDDNode)::BDDNode
-    t.m.ptr == e.m.ptr || error("Children must belong to same BDD manager")
     m = t.m
-    # Get variable node pointer directly without creating temporary wrapper
-    var_ptr = ccall((:Cudd_bddIthVar, libcudd), Ptr{DdNode},
-                    (Ptr{DdManager}, Cint), m.ptr, i)
-    # Call ITE directly with the raw pointer
-    p = ccall((:Cudd_bddIte, libcudd), Ptr{DdNode},
-              (Ptr{DdManager}, Ptr{DdNode}, Ptr{DdNode}, Ptr{DdNode}),
-              m.ptr, var_ptr, t.ptr, e.ptr)
+    p = ccall((:My_BddMakeNode, libmycudd), Ptr{DdNode},
+              (Ptr{DdManager}, Cint, Ptr{DdNode}, Ptr{DdNode}),
+              m.ptr, i, t.ptr, e.ptr)
     return _wrap_node(m, p)
 end
 
@@ -151,6 +146,7 @@ end
 Return the number of minterms (as a floating-point value) of `x` assuming
 `nvars` variables. This is a wrapper around `Cudd_CountMinterm`.
 """
-minterms(x::BDDNode, nvars::Integer)::Float64 =
+function minterms(x::BDDNode, nvars::Integer)::Float64
     ccall((:Cudd_CountMinterm, libcudd), Cdouble,
           (Ptr{DdManager}, Ptr{DdNode}, Cint), x.m.ptr, x.ptr, nvars)
+end

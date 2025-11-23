@@ -187,16 +187,11 @@ end
 Create a ZDD node with top variable index `i` and children `t` (then/include) and `e` (else/exclude).
 Equivalent to `zdd_ite(var(m, i), t, e)`. Children must belong to the same manager.
 """
-function zdd_mk(i::Integer, t::ZDDNode, e::ZDDNode)::ZDDNode
-    t.m.ptr == e.m.ptr || error("Children must belong to same ZDD manager")
-    m = t.m
-    # Get variable node pointer directly without creating temporary wrapper
-    var_ptr = ccall((:Cudd_zddIthVar, libcudd), Ptr{DdNode},
-                    (Ptr{DdManager}, Cint), m.ptr, i)
-    # Call ITE directly with the raw pointer
-    p = ccall((:Cudd_zddIte, libcudd), Ptr{DdNode},
-              (Ptr{DdManager}, Ptr{DdNode}, Ptr{DdNode}, Ptr{DdNode}),
-              m.ptr, var_ptr, t.ptr, e.ptr)
+function zdd_mk(i::Integer, high::ZDDNode, low::ZDDNode)::ZDDNode
+    m = high.m
+    p = ccall((:My_ZddMakeNode, libmycudd), Ptr{DdNode},
+              (Ptr{DdManager}, Cint, Ptr{DdNode}, Ptr{DdNode}),
+              m.ptr, i, high.ptr, low.ptr)
     return _wrap_zdd_node(m, p)
 end
 

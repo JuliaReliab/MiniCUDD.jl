@@ -47,12 +47,14 @@ using Libdl
 
 include(joinpath(@__DIR__, "..", "deps", "deps.jl"))
 const libcudd = libcudd_path
+const libmycudd = mycuddwrap_path
 
 export BDDManager, ZDDManager
 export BDDNode, ZDDNode
+export nvars
 export var, const1, const0
 export minterms, dag_size
-export node_index, node_level, isconstant
+export node_id, node_index, node_level, isconstant
 export then_ptr, else_ptr
 export close!, quit
 
