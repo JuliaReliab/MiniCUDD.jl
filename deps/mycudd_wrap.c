@@ -67,6 +67,11 @@ DdNode * My_ZddMakeNode(DdManager *dd, int index, DdNode *t, DdNode *e)
 {
     dd->reordered = 0;
 
+    if (t == DD_ZERO(dd)) {
+        cuddRef(e);
+        return e;
+    }
+
     int level_index = Cudd_ReadPermZdd(dd, index);
     if (level_index < 0 || level_index == CUDD_CONST_INDEX) {
         return NULL;
@@ -101,6 +106,11 @@ DdNode * My_ZddMakeNode(DdManager *dd, int index, DdNode *t, DdNode *e)
 DdNode * My_BddMakeNode(DdManager *dd, int index, DdNode *t, DdNode *e)
 {
     dd->reordered = 0;
+
+    if (t == e) {
+        cuddRef(t);
+        return t;
+    }
 
     int level_index = Cudd_ReadPerm(dd, index);
     if (level_index < 0 || index == CUDD_CONST_INDEX) {
