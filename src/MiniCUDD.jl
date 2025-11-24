@@ -102,10 +102,10 @@ mutable struct ZDDManager <: AbstractManager
 end
 
 # Internal helper to initialize a CUDD manager
-function _init_manager(T::Type{<:AbstractManager}; nvars::Int=0, slots::Int=256, cachesize::Int=262144)
+function _init_manager(T::Type{<:AbstractManager}; nvars::Int=0, nvarsZ::Int=0, slots::Int=256, cachesize::Int=262144)
     mgr = ccall((:Cudd_Init, libcudd), Ptr{DdManager},
                 (Cuint,Cuint,Cuint,Cuint,Csize_t),
-                nvars, 0, slots, cachesize, Csize_t(0))
+                nvars, nvarsZ, slots, cachesize, Csize_t(0))
     mgr == C_NULL && error("Cudd_Init failed")
     m = T(mgr, true)
     finalizer(m) do mm
@@ -129,8 +129,8 @@ Arguments
 
 Returns a `BDDManager` instance. Call `quit(mgr)` to free resources explicitly.
 """
-BDDManager(; nvars::Int=0, slots::Int=256, cachesize::Int=262144) =
-    _init_manager(BDDManager; nvars=nvars, slots=slots, cachesize=cachesize)
+BDDManager(; nvars=0, slots=256, cachesize=262144) =
+    _init_manager(BDDManager; nvars=nvars, nvarsZ=0, slots=slots, cachesize=cachesize)
 
 """ZDDManager(; nvars=0, slots=256, cachesize=262144)
 
@@ -143,8 +143,8 @@ Arguments
 
 Returns a `ZDDManager` instance. Call `quit(mgr)` to free resources explicitly.
 """
-ZDDManager(; nvars::Int=0, slots::Int=256, cachesize::Int=262144) =
-    _init_manager(ZDDManager; nvars=nvars, slots=slots, cachesize=cachesize)
+ZDDManager(; nvars=0, slots=256, cachesize=262144) =
+    _init_manager(ZDDManager; nvars=0, nvarsZ=nvars, slots=slots, cachesize=cachesize)
 
 function quit(m::AbstractManager)
     if m.alive && m.ptr != C_NULL
