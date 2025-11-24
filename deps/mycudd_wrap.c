@@ -73,6 +73,7 @@ DdNode * My_ZddMakeNode(DdManager *dd, int index, DdNode *t, DdNode *e)
     }
 
     if (index < 0 || index >= dd->sizeZ) {
+        fprintf(stderr, "Invalid index %d for ZDD manager size %d\n", index, dd->sizeZ);
         return NULL;
     }
 
