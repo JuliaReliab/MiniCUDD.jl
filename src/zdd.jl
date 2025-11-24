@@ -163,11 +163,10 @@ end
 
 Return the number of sets (combinations) in the ZDD `z` as a floating-point value.
 """
-zdd_count(z::ZDDNode)::Float64 =
+function zdd_count(z::ZDDNode)::Float64
     ccall((:Cudd_zddCountDouble, libcudd), Cdouble,
           (Ptr{DdManager}, Ptr{DdNode}), z.m.ptr, z.ptr)
-
-
+end
 
 """bdd_to_zdd(zdd_mgr, bdd_node)
 
@@ -189,11 +188,13 @@ Create a ZDD node with top variable index `i` and children `t` (then/include) an
 Equivalent to `zdd_ite(var(m, i), t, e)`. Children must belong to the same manager.
 """
 function zdd_mk(i::Integer, high::ZDDNode, low::ZDDNode)::ZDDNode
-    m = high.m
+    mgr = high.m
+    level = zdd_node_level(mgr, i)
+    @assert level < node_level(high) && level < node_level(low)
     p = ccall((:My_ZddMakeNode, libmycudd), Ptr{DdNode},
               (Ptr{DdManager}, Cint, Ptr{DdNode}, Ptr{DdNode}),
-              m.ptr, i, high.ptr, low.ptr)
-    return _wrap_zdd_node(m, p)
+              mgr.ptr, i, high.ptr, low.ptr)
+    return _wrap_zdd_node(mgr, p)
 end
 
 """zdd_to_bdd(bdd_mgr, zdd_node)

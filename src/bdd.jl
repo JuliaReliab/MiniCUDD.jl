@@ -134,11 +134,13 @@ Create a BDD node with top variable index `i` and children `t` (then) and `e` (e
 Equivalent to `bdd_ite(var(m, i), t, e)`. Children must belong to the same manager.
 """
 function bdd_mk(i::Integer, t::BDDNode, e::BDDNode)::BDDNode
-    m = t.m
+    mgr = t.m
+    level = bdd_node_level(mgr, i)
+    @assert level < node_level(t) && level < node_level(e)
     p = ccall((:My_BddMakeNode, libmycudd), Ptr{DdNode},
               (Ptr{DdManager}, Cint, Ptr{DdNode}, Ptr{DdNode}),
-              m.ptr, i, t.ptr, e.ptr)
-    return _wrap_node(m, p)
+              mgr.ptr, i, t.ptr, e.ptr)
+    return _wrap_node(mgr, p)
 end
 
 """minterms(x, nvars)

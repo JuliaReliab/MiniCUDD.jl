@@ -144,6 +144,14 @@ end
     return ccall((:Cudd_ReadPermZdd, libcudd), Cint, (Ptr{DdManager}, Cint), n.m.ptr, idx)
 end
 
+@inline function bdd_node_level(n::AbstractManager, idx::Int)::Int
+    return ccall((:Cudd_ReadPerm, libcudd), Cint, (Ptr{DdManager}, Cint), n.ptr, idx)
+end
+
+@inline function zdd_node_level(n::AbstractManager, idx::Int)::Int
+    return ccall((:Cudd_ReadPermZdd, libcudd), Cint, (Ptr{DdManager}, Cint), n.ptr, idx)
+end
+
 """isconstant(node)
 
 Return true if `node` is a terminal constant node.

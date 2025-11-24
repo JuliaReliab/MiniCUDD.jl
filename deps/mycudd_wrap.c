@@ -72,16 +72,7 @@ DdNode * My_ZddMakeNode(DdManager *dd, int index, DdNode *t, DdNode *e)
         return e;
     }
 
-    int level_index = Cudd_ReadPermZdd(dd, index);
-    if (level_index < 0 || level_index == CUDD_CONST_INDEX) {
-        return NULL;
-    }
-
-    int level_t = Cudd_ReadPermZdd(dd, Cudd_Regular(t)->index);
-    int level_e = Cudd_ReadPermZdd(dd, Cudd_Regular(e)->index);
-
-    if ((level_t != CUDD_CONST_INDEX && level_index >= level_t) ||
-        (level_e != CUDD_CONST_INDEX && level_index >= level_e)) {
+    if (index < 0 || index >= dd->sizeZ) {
         return NULL;
     }
 
@@ -93,6 +84,36 @@ DdNode * My_ZddMakeNode(DdManager *dd, int index, DdNode *t, DdNode *e)
     cuddRef(res);
     return res;
 }
+// DdNode * My_ZddMakeNode(DdManager *dd, int index, DdNode *t, DdNode *e)
+// {
+//     dd->reordered = 0;
+
+//     if (t == DD_ZERO(dd)) {
+//         cuddRef(e);
+//         return e;
+//     }
+
+//     int level_index = Cudd_ReadPermZdd(dd, index);
+//     if (level_index < 0 || level_index == CUDD_CONST_INDEX) {
+//         return NULL;
+//     }
+
+//     int level_t = Cudd_ReadPermZdd(dd, Cudd_Regular(t)->index);
+//     int level_e = Cudd_ReadPermZdd(dd, Cudd_Regular(e)->index);
+
+//     if ((level_t != CUDD_CONST_INDEX && level_index >= level_t) ||
+//         (level_e != CUDD_CONST_INDEX && level_index >= level_e)) {
+//         return NULL;
+//     }
+
+//     DdNode *res = cuddZddGetNode(dd, index, t, e);
+//     if (res == NULL) {
+//         return NULL;
+//     }
+
+//     cuddRef(res);
+//     return res;
+// }
 
 /*
  * My_BddMakeNode
@@ -112,31 +133,7 @@ DdNode * My_BddMakeNode(DdManager *dd, int index, DdNode *t, DdNode *e)
         return t;
     }
 
-    int level_index = Cudd_ReadPerm(dd, index);
-    if (level_index < 0 || index == CUDD_CONST_INDEX) {
-        return NULL;
-    }
-
-    DdNode *t_reg = Cudd_Regular(t);
-    DdNode *e_reg = Cudd_Regular(e);
-
-    int level_t;
-    int level_e;
-
-    if (t_reg->index == CUDD_CONST_INDEX) {
-        level_t = CUDD_CONST_INDEX;
-    } else {
-        level_t = Cudd_ReadPerm(dd, t_reg->index);
-    }
-
-    if (e_reg->index == CUDD_CONST_INDEX) {
-        level_e = CUDD_CONST_INDEX;
-    } else {
-        level_e = Cudd_ReadPerm(dd, e_reg->index);
-    }
-
-    if ((level_t != CUDD_CONST_INDEX && level_index >= level_t) ||
-        (level_e != CUDD_CONST_INDEX && level_index >= level_e)) {
+    if (index < 0 || index >= dd->size) {
         return NULL;
     }
 
@@ -148,3 +145,48 @@ DdNode * My_BddMakeNode(DdManager *dd, int index, DdNode *t, DdNode *e)
     cuddRef(res);
     return res;
 }
+// DdNode * My_BddMakeNode(DdManager *dd, int index, DdNode *t, DdNode *e)
+// {
+//     dd->reordered = 0;
+
+//     if (t == e) {
+//         cuddRef(t);
+//         return t;
+//     }
+
+//     int level_index = Cudd_ReadPerm(dd, index);
+//     if (level_index < 0 || index == CUDD_CONST_INDEX) {
+//         return NULL;
+//     }
+
+//     DdNode *t_reg = Cudd_Regular(t);
+//     DdNode *e_reg = Cudd_Regular(e);
+
+//     int level_t;
+//     int level_e;
+
+//     if (t_reg->index == CUDD_CONST_INDEX) {
+//         level_t = CUDD_CONST_INDEX;
+//     } else {
+//         level_t = Cudd_ReadPerm(dd, t_reg->index);
+//     }
+
+//     if (e_reg->index == CUDD_CONST_INDEX) {
+//         level_e = CUDD_CONST_INDEX;
+//     } else {
+//         level_e = Cudd_ReadPerm(dd, e_reg->index);
+//     }
+
+//     if ((level_t != CUDD_CONST_INDEX && level_index >= level_t) ||
+//         (level_e != CUDD_CONST_INDEX && level_index >= level_e)) {
+//         return NULL;
+//     }
+
+//     DdNode *res = cuddUniqueInter(dd, index, t, e);
+//     if (res == NULL) {
+//         return NULL;
+//     }
+
+//     cuddRef(res);
+//     return res;
+// }
