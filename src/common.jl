@@ -104,11 +104,11 @@ end
 
 Return the DAG size (node count) of the given `BDDNode` or `ZDDNode`.
 """
-@inline function dag_size(x::BDDNode)::Cint
+@inline function dag_size(x::BDDNode)::Int
     ccall((:Cudd_DagSize, libcudd), Cint, (Ptr{DdNode},), x.ptr)
 end
 
-@inline function dag_size(x::ZDDNode)::Cint
+@inline function dag_size(x::ZDDNode)::Int
     ccall((:Cudd_DagSize, libcudd), Cint, (Ptr{DdNode},), x.ptr)
 end
 
@@ -116,11 +116,11 @@ end
 
 Return the variable index tested at the root of node `n`.
 """
-@inline function node_index(n::BDDNode)::Cint
+@inline function node_index(n::BDDNode)::Int
     return ccall((:Cudd_NodeReadIndex, libcudd), Cint, (Ptr{DdNode},), n.ptr)
 end
 
-@inline function node_index(n::ZDDNode)::Cint
+@inline function node_index(n::ZDDNode)::Int
     return ccall((:Cudd_NodeReadIndex, libcudd), Cint, (Ptr{DdNode},), n.ptr)
 end
 
@@ -173,8 +173,8 @@ end
 Return the DAG size (node count) of the given `BDDNode` or `ZDDNode`.
 Equivalent to `dag_size(node)`.
 """
-Base.length(n::BDDNode) = Int(dag_size(n))
-Base.length(n::ZDDNode) = Int(dag_size(n))
+Base.length(n::BDDNode) = dag_size(n)
+Base.length(n::ZDDNode) = dag_size(n)
 
 """
     nvars(mgr::BDDManager) -> Int
