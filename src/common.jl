@@ -15,8 +15,13 @@
 
 """then_ptr(node)
 
-Return the raw then-pointer (Ptr{DdNode}) of the given node. The
-pointer returned respects the complement bit of the node.
+Return the raw then-pointer (`Ptr{DdNode}`) of the given node.
+
+Notes:
+- For BDDs, the returned pointer is the child's canonical pointer; the
+    parent node's complement bit is not re-applied here. Use `then_node` for a
+    managed wrapper.
+- For ZDDs, pointers are not complemented; returns the direct child pointer.
 """
 @inline function then_ptr(n::BDDNode)
     p = regular(n.ptr)
@@ -31,8 +36,13 @@ end
 
 """else_ptr(node)
 
-Return the raw else-pointer (Ptr{DdNode}) of the given node. The
-pointer returned respects the complement bit of the node.
+Return the raw else-pointer (`Ptr{DdNode}`) of the given node.
+
+Notes:
+- For BDDs, the returned pointer is the child's canonical pointer; the
+    parent node's complement bit is not re-applied here. Use `else_node` for a
+    managed wrapper.
+- For ZDDs, pointers are not complemented; returns the direct child pointer.
 """
 @inline function else_ptr(n::BDDNode)
     p = regular(n.ptr)
@@ -85,7 +95,11 @@ end
 """node_id(node)
 
 Return a unique identifier for the given `BDDNode` or `ZDDNode`.
-This is based on the canonical pointer (with complement bit cleared).
+
+Details:
+- For BDDs, returns the canonical pointer with the complement bit cleared for
+    internal nodes; for terminal nodes, returns the exact pointer.
+- For ZDDs, returns the raw pointer as-is (no complement semantics).
 """
 @inline function node_id(x::BDDNode)::UInt
     m = x.m
@@ -130,7 +144,7 @@ Return the current level (position in the variable ordering) of the variable
 tested at the root of `node`.
 
 For BDD nodes this queries `Cudd_ReadPerm`, for ZDD nodes `Cudd_ReadPermZdd`.
-Terminal (constant) nodes return `-1`.
+Terminal (constant) nodes return `typemax(Int)`.
 """
 @inline function node_level(n::BDDNode)::Int
     isconstant(n) && return typemax(Int)

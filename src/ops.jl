@@ -2,8 +2,11 @@
 #
 # BDD operators: & | ⊻ !
 # ZDD set operators: union, intersect, setdiff and Unicode ∪, ∩
-
-# Define operator methods by extending Base and adding Unicode helpers
+#
+# Define operator methods by extending Base and adding Unicode helpers.
+# All operators require operands to share the same owning manager; results
+# belong to that manager. Errors from underlying CUDD calls propagate via
+# the respective wrappers as `ErrorException` when a `NULL` node is returned.
 
 # ========================
 # BDD logical operators
@@ -12,6 +15,15 @@
 Base.:&(a::BDDNode, b::BDDNode) = bdd_and(a, b)
 Base.:(|)(a::BDDNode, b::BDDNode) = bdd_or(a, b)
 Base.:⊻(a::BDDNode, b::BDDNode) = bdd_xor(a, b)
+"""!(a::BDDNode)
+
+Logical NOT of a BDD node.
+
+Details:
+- Implemented via complement-edge semantics by flipping the pointer's LSB.
+- Returns a thin unmanaged wrapper (no refcount change).
+- For managed nodes, use boolean combinators if you need reference management.
+"""
 Base.:!(a::BDDNode) = _wrap_node(a.m, compl(a.ptr); ref=false, manage=false)
 
 # ========================

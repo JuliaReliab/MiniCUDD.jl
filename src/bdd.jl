@@ -37,6 +37,10 @@ end
 """var(mgr, i)
 
 Return the BDD variable `i` from the manager `mgr` as a `BDDNode`.
+
+Notes:
+- The node belongs to `mgr`. Use the same manager for all subsequent operations.
+- Returned wrapper manages the CUDD reference (see `_wrap_node`).
 """
 function var(m::BDDManager, i::Integer)::BDDNode
     p = ccall((:Cudd_bddIthVar, libcudd), Ptr{DdNode}, (Ptr{DdManager}, Cint), m.ptr, i)
@@ -46,8 +50,12 @@ end
 """const1(mgr; take_ref=false)
 
 Return the logical constant 1 node for the manager `mgr`.
-If `take_ref=true` the wrapper will take an additional reference and manage
-the node; otherwise a non-managed thin wrapper is returned.
+
+Reference management:
+- `take_ref=false`: returns a thin wrapper without increasing the CUDD refcount;
+    finalization is disabled.
+- `take_ref=true`: increases the CUDD refcount and returns a managed wrapper
+    that will be dereferenced automatically.
 """
 function const1(m::BDDManager; take_ref::Bool=false)::BDDNode
     p = ccall((:Cudd_ReadOne, libcudd), Ptr{DdNode}, (Ptr{DdManager},), m.ptr)
@@ -58,8 +66,12 @@ end
 """const0(mgr; take_ref=false)
 
 Return the logical constant 0 node for the manager `mgr`.
-If `take_ref=true` the wrapper will take an additional reference and manage
-the node; otherwise a non-managed thin wrapper is returned.
+
+Reference management:
+- `take_ref=false`: returns a thin wrapper without increasing the CUDD refcount;
+    finalization is disabled.
+- `take_ref=true`: increases the CUDD refcount and returns a managed wrapper
+    that will be dereferenced automatically.
 """
 function const0(m::BDDManager; take_ref::Bool=false)::BDDNode
     p = ccall((:Cudd_ReadLogicZero, libcudd), Ptr{DdNode}, (Ptr{DdManager},), m.ptr)
@@ -70,6 +82,10 @@ end
 """bdd_and(a, b)
 
 Return the BDD representing logical AND of `a` and `b`.
+
+Constraints:
+- Both inputs must belong to the same manager; the result belongs to that manager.
+- Errors from CUDD (e.g., `NULL` nodes) propagate via `_wrap_node` as `ErrorException`.
 """
 function bdd_and(a::BDDNode, b::BDDNode)::BDDNode
     m = a.m
@@ -82,6 +98,10 @@ end
 """bdd_or(a, b)
 
 Return the BDD representing logical OR of `a` and `b`.
+
+Constraints:
+- Both inputs must belong to the same manager; the result belongs to that manager.
+- Errors from CUDD (e.g., `NULL` nodes) propagate via `_wrap_node` as `ErrorException`.
 """
 function bdd_or(a::BDDNode, b::BDDNode)::BDDNode
     m = a.m
@@ -94,6 +114,10 @@ end
 """bdd_xor(a, b)
 
 Return the BDD representing logical XOR of `a` and `b`.
+
+Constraints:
+- Both inputs must belong to the same manager; the result belongs to that manager.
+- Errors from CUDD (e.g., `NULL` nodes) propagate via `_wrap_node` as `ErrorException`.
 """
 function bdd_xor(a::BDDNode, b::BDDNode)::BDDNode
     m = a.m
@@ -106,6 +130,10 @@ end
 """bdd_implies(a, b)
 
 Return the BDD representing logical implication `a => b`.
+
+Implementation details:
+- Uses `Cudd_bddIte(a, b, 1)`; equivalent to `(!a) | b`.
+- Inputs must share a manager; the result belongs to that manager.
 """
 function bdd_implies(a::BDDNode, b::BDDNode)::BDDNode
     m = a.m
@@ -119,6 +147,10 @@ end
 """bdd_ite(i, t, e)
 
 Return the if-then-else BDD: `i ? t : e`.
+
+Constraints:
+- All inputs must belong to the same manager; the result belongs to that manager.
+- Errors from CUDD (e.g., `NULL` nodes) propagate via `_wrap_node` as `ErrorException`.
 """
 function bdd_ite(i::BDDNode, t::BDDNode, e::BDDNode)::BDDNode
     m = i.m
@@ -130,8 +162,15 @@ end
 
 """bdd_mk(i, t, e)
 
-Create a BDD node with top variable index `i` and children `t` (then) and `e` (else).
-Equivalent to `bdd_ite(var(m, i), t, e)`. Children must belong to the same manager.
+Create a BDD node whose top variable has index `i`, with children `t` (then) and `e` (else).
+
+Behavior and constraints:
+- Equivalent to `bdd_ite(var(m, i), t, e)` under the manager of `t`/`e`.
+- Children must belong to the same manager as the new node.
+- Ordering constraint: `level(i) < node_level(t)` and `level(i) < node_level(e)`.
+    If this constraint is violated, construction fails (CUDD returns `NULL`) and an
+    `ErrorException` is thrown by the wrapper.
+- The result is canonical (subject to CUDD's unique table and complemented edges).
 """
 function bdd_mk(i::Integer, t::BDDNode, e::BDDNode)::BDDNode
     mgr = t.m

@@ -12,6 +12,10 @@ set of primitives for constructing and manipulating BDDs: variable creation,
 boolean operators, ITE, basic utilities (minterm counting, DAG size), and
 helpers for accessing node children.
 
+Key semantics:
+- `node_level`: returns `typemax(Int)` for terminal nodes (BDD/ZDD).
+- `node_id`: for BDDs uses canonical pointer for internal nodes and exact pointer for terminals; ZDDs use raw pointers.
+
 Status
 ------
 - Julia compatibility: `julia = "1.10"` (see `Project.toml`)
@@ -109,6 +113,7 @@ API highlights
 - Boolean ops: `bdd_and(a, b)`, `bdd_or(a, b)`, `bdd_xor(a, b)`, `bdd_implies(a, b)`, `bdd_ite(i, t, e)`
 	- Manager is automatically taken from the node arguments
 - Node builder: `bdd_mk(i, t, e)` - creates a BDD node with variable index `i` and children `t` (then) and `e` (else). Internally uses ITE and CUDD's unique table for canonicalization and caching. Efficient for repeated calls.
+	- Ordering constraint: `level(i) < node_level(t)` and `level(i) < node_level(e)`; violation raises an error (CUDD returns `NULL`).
 	- Example: `bdd_mk(0, const1(mgr), const0(mgr)) == var(mgr, 0)`
 - Utilities: `minterms(node, nvars)`, `dag_size(node)`, `node_index(node)`, `isconstant(node)`
 - Child accessors: `then_node(node)`, `else_node(node)`, `then_ptr(node)`, `else_ptr(node)`
@@ -116,11 +121,12 @@ API highlights
 ### ZDD Operations
 - Types: `ZDDManager`, `ZDDNode`
 - Create a manager: `ZDDManager(; nvars=0, slots=256, cachesize=262144)`
-- Variables: `var(mgr, i)` (unified with BDD)
+- Variables: `var(mgr, i)` (unified with BDD). Equivalent to `zdd_change(zdd_base(mgr), i)` and represents the singleton family `{i}`.
 - Constants: `zdd_empty(mgr)`, `zdd_base(mgr)`
 - Set ops: `zdd_union(a, b)`, `zdd_intersect(a, b)`, `zdd_diff(a, b)`
 	- Manager is automatically taken from the node arguments
 - Node builder: `zdd_mk(i, t, e)` - creates a ZDD node with variable index `i` and children `t` (include) and `e` (exclude). Internally uses ITE and CUDD's unique table for canonicalization and caching. Efficient for repeated calls.
+	- Ordering constraint: `level(i) < node_level(t)` and `level(i) < node_level(e)`; violation raises an error (CUDD returns `NULL`).
 	- Example: `zdd_mk(0, zdd_base(mgr), zdd_empty(mgr)) == var(mgr, 0)`
 - Cofactors: `zdd_subset1(a, i)`, `zdd_subset0(a, i)`, `zdd_change(a, i)`, `zdd_ite(i, t, e)`
 - Utilities: `zdd_count(node)` (ZDD-specific), unified utilities work too: `dag_size`, `node_index`, `isconstant`
@@ -128,8 +134,9 @@ API highlights
 - Conversion: `bdd_to_zdd`, `zdd_to_bdd`
 
 ### Visualization
-- `to_dot(node; title="BDD", varlabels=nothing)` - generate DOT language representation for Graphviz
-- `to_dot(io, node; title="BDD", varlabels=nothing)` - write DOT representation to an IO stream
+- `to_dot(node; title="BDD", varlabels=nothing, terminal_labels=["F","T"])` - generate DOT language representation for Graphviz (BDD)
+- `to_dot(node; title="ZDD", varlabels=nothing, terminal_labels=["∅","B"])` - generate DOT language representation for Graphviz (ZDD)
+- `to_dot(io, node; ...)` - write DOT representation to an IO stream
 
 Example:
 ```julia
@@ -160,8 +167,9 @@ The generated graph shows:
 - Else-edges (0-edges) as dashed lines
 
 Notes:
-- `varlabels` must not contain reserved terminal labels: for BDD `T`/`F`, for ZDD `∅`/`B`.
+- `varlabels` must not contain reserved terminal labels: for BDD `T`/`F`, for ZDD `∅`/`B` (collision is rejected).
 - If `varlabels` is provided, it is 1-indexed (`varlabels[i+1]` is used for variable `i`).
+- Node IDs in DOT use `node_id` semantics described above for stable visualization.
 
 ### Operators
 
@@ -171,12 +179,49 @@ Notes:
 - `a ⊻ b` → `bdd_xor(a, b)`
 - `!a` → logical complement of `a` (via complemented edges)
 
+Examples:
+```julia
+mgr = BDDManager(nvars=3)
+x = var(mgr, 0)
+y = var(mgr, 1)
+z = var(mgr, 2)
+
+f_and = x & y                 # same as bdd_and(x, y)
+f_or  = x | y                 # same as bdd_or(x, y)
+f_xor = x ⊻ y                 # same as bdd_xor(x, y)
+f_not = !x                    # complement-edge (no refcount change)
+
+# Compose operations
+f = (x & y) | (!x & z)        # Shannon-style expression
+println(minterms(f, 3))
+quit(mgr)
+```
+
 #### ZDD set operators
 - `union(a, b)` → `zdd_union(a, b)`
 - `intersect(a, b)` → `zdd_intersect(a, b)`
 - `setdiff(a, b)` → `zdd_diff(a, b)`
 - Shorthands: `a + b` (union), `a * b` (intersection), `a - b` (difference)
 - Unicode: `a ∪ b` (union), `a ∩ b` (intersection)
+
+Examples:
+```julia
+zm = ZDDManager(nvars=4)
+a = var(zm, 0)    # singleton {0}
+b = var(zm, 1)    # singleton {1}
+c = var(zm, 2)    # singleton {2}
+
+u1 = union(a, b)  # { {0}, {1} }
+u2 = a + c        # { {0}, {2} }
+i1 = intersect(u1, u2)  # { {0} }
+d1 = setdiff(u1, a)     # { {1} }
+
+# Unicode convenience
+u3 = a ∪ b
+i2 = u3 ∩ c              # empty family
+println(zdd_count(i2))
+quit(zm)
+```
 
 ### Resource Management
 - `close!(node)` - explicitly release a node

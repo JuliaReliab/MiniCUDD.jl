@@ -19,14 +19,18 @@ write("graph.dot", dot_str)
 # Arguments
 - `node`: A `BDDNode` to visualize
 - `title`: Optional title for the graph (default: "BDD")
-- `varlabels`: Optional vector/array of variable labels. If provided, variable at index i will be labeled with varlabels[i+1] (1-indexed). If not provided, variables are labeled with their index number.
-- `terminal_labels`: Optional labels for terminal nodes (default: ["F", "T"])
+- `varlabels`: Optional vector/array of variable labels. If provided, variable at index i will be labeled with `varlabels[i+1]` (1-indexed). If not provided, variables are labeled with their index number.
+- `terminal_labels`: Optional labels for terminal nodes (default: ["F", "T"]). Collisions with `varlabels` are rejected.
 
 The generated graph shows:
 - Variable nodes as circles with variable labels
 - Terminal nodes as squares (T/F for BDD)
 - Then-edges (1-edges) as solid lines
 - Else-edges (0-edges) as dashed lines
+
+Notes:
+- Node identifiers use `node_id`, which for BDDs is the canonical pointer for internal nodes and the exact pointer for terminal nodes, ensuring stable IDs across complement edges.
+- `terminal_labels` map to `const0` and `const1` respectively.
 
 # Example
 ```
@@ -65,14 +69,18 @@ write("graph.dot", dot_str)
 # Arguments
 - `node`: A `ZDDNode` to visualize
 - `title`: Optional title for the graph (default: "ZDD")
-- `varlabels`: Optional vector/array of variable labels. If provided, variable at index i will be labeled with varlabels[i+1] (1-indexed). If not provided, variables are labeled with their index number.
-- `terminal_labels`: Optional labels for terminal nodes (default: ["∅", "B"])
+- `varlabels`: Optional vector/array of variable labels. If provided, variable at index i will be labeled with `varlabels[i+1]` (1-indexed). If not provided, variables are labeled with their index number.
+- `terminal_labels`: Optional labels for terminal nodes (default: ["∅", "B"]). Collisions with `varlabels` are rejected.
 
 The generated graph shows:
 - Variable nodes as circles with variable labels
 - Terminal nodes as squares (∅/B for ZDD)
 - Then-edges (1-edges) as solid lines
 - Else-edges (0-edges) as dashed lines
+
+Notes:
+- Node identifiers use `node_id`, which for ZDDs is the raw pointer (no complement semantics).
+- `terminal_labels` map to `zdd_empty` and `zdd_base` respectively.
 
 # Example
 ```
