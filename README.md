@@ -55,6 +55,13 @@ brew install autoconf automake libtool pkg-config
 # xcode-select --install
 ```
 
+Prerequisites (Ubuntu/Debian):
+
+```bash
+sudo apt-get update
+sudo apt-get install -y autoconf automake libtool pkg-config build-essential
+```
+
 ```bash
 # zsh/Bash
 julia --project=. -e 'using Pkg; Pkg.build("MiniCUDD")'
