@@ -100,6 +100,7 @@ f = zdd_union(z0, z1)  # Simpler! Manager not needed
 println("ZDD DAG size: ", dag_size(f))  # dag_size() works with both types
 println("Set count: ", zdd_count(f))  # Manager not needed here either
 quit(mgr)
+```
 
 ### Custom Algorithm Example: BDD Probability (Per-Variable)
 
@@ -158,7 +159,6 @@ quit(mgr)
 
 This pattern makes it easy to extend to other aggregations (e.g. expected
 costs) by replacing the terminal values and combination rule.
-```
 
 API highlights
 --------------
