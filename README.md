@@ -100,6 +100,64 @@ f = zdd_union(z0, z1)  # Simpler! Manager not needed
 println("ZDD DAG size: ", dag_size(f))  # dag_size() works with both types
 println("Set count: ", zdd_count(f))  # Manager not needed here either
 quit(mgr)
+
+### Custom Algorithm Example: BDD Probability (Per-Variable)
+
+Below is an example showing how to implement a custom probability
+computation over a BDD with variable-dependent probabilities. Assume each
+variable `x_i` is independently true with probability `p[i]` (1-indexed vector).
+We traverse the BDD using Shannon expansion:
+
+For a non-terminal node testing variable `x_i` with then-child `T` and
+else-child `E`:
+
+`Prob(node) = p[i] * Prob(T) + (1 - p[i]) * Prob(E)`
+
+Terminal 1 has probability 1; terminal 0 has probability 0.
+
+We distinguish terminals via cached `node_id` of `const1` / `const0`, and use
+an inner function `rec` that closes over the probability vector:
+
+```julia
+using MiniCUDD
+
+function prob(f::BDDNode, probs::Vector{Float64})
+	length(probs) >= nvars(f.m) || error("prob vector shorter than number of variables")
+	one_id  = node_id(const1(f.m))
+	zero_id = node_id(const0(f.m))
+	memo = Dict{UInt,Float64}()
+	function rec(n::BDDNode)::Float64
+		nid = node_id(n)
+		if haskey(memo, nid)
+			return memo[nid]
+		end
+		if nid == one_id
+			memo[nid] = 1.0; return 1.0
+		elseif nid == zero_id
+			memo[nid] = 0.0; return 0.0
+		end
+		idx = node_index(n)              # 0-based index
+		p = probs[idx + 1]               # access per-variable probability
+		t_val = rec(then_node(n))
+		e_val = rec(else_node(n))
+		val = p * t_val + (1 - p) * e_val
+		memo[nid] = val
+		return val
+	end
+	return rec(f)
+end
+
+mgr = BDDManager(nvars=3)
+x = var(mgr, 0); y = var(mgr, 1); z = var(mgr, 2)
+f = (x & y) | (!x & z)
+println("Prob with p=[0.5,0.5,0.5]: ", prob(f, [0.5,0.5,0.5]))   # 0.5
+println("Prob with p=[0.3,0.3,0.3]: ", prob(f, [0.3,0.3,0.3]))   # 0.30 = 0.3^2 + (1-0.3)*0.3
+println("Prob with p=[0.2,0.8,0.6]: ", prob(f, [0.2,0.8,0.6]))   # 0.2*0.8 + (1-0.2)*0.6 = 0.16 + 0.48 = 0.64
+quit(mgr)
+```
+
+This pattern makes it easy to extend to other aggregations (e.g. expected
+costs) by replacing the terminal values and combination rule.
 ```
 
 API highlights
