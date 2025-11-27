@@ -46,6 +46,15 @@ Preparing the CUDD library
 	 package build step. The build requires `git`, `autoconf`, `automake`,
 	 `libtool`, `make`, and a C compiler.
 
+Prerequisites (macOS via Homebrew):
+
+```bash
+brew update
+brew install autoconf automake libtool pkg-config
+# Optionally ensure command line tools are installed for a compiler:
+# xcode-select --install
+```
+
 ```bash
 # zsh/Bash
 julia --project=. -e 'using Pkg; Pkg.build("MiniCUDD")'

@@ -2,45 +2,45 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, develop ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
 
 jobs:
-  test-linux:
-    runs-on: ubuntu-latest
+  test:
+    name: Julia ${{ matrix.version }} - ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        version: ['1']
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Setup Julia
-        uses: julia-actions/setup-julia@v1
+      - name: Set up Julia
+        uses: julia-actions/setup-julia@v2
         with:
-          version: '1.10'
+          version: ${{ matrix.version }}
 
-      - name: Install system deps (Linux)
+      - name: Install system dependencies (Ubuntu)
+        if: startsWith(runner.os, 'Linux')
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential autoconf automake libtool git
+          sudo apt-get install -y autoconf automake libtool pkg-config build-essential
 
-      - name: Build and test
+      - name: Install system dependencies (macOS)
+        if: startsWith(runner.os, 'macOS')
         run: |
-          julia --project=. -e "using Pkg; Pkg.build(); Pkg.test();"
+          brew install autoconf automake libtool pkg-config
 
-  test-macos:
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
+      - name: Cache Julia artifacts
+        uses: julia-actions/cache@v2
 
-      - name: Setup Julia
-        uses: julia-actions/setup-julia@v1
-        with:
-          version: '1.10'
+      - name: Build package
+        uses: julia-actions/julia-buildpkg@v1
 
-      - name: Install system deps (macOS)
-        run: |
-          brew update || true
-          brew install autoconf automake libtool git
-
-      - name: Build and test
-        run: |
-          julia --project=. -e "using Pkg; Pkg.build(); Pkg.test();"
+      - name: Run tests
+        uses: julia-actions/julia-runtest@v1
