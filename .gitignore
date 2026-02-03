@@ -1,0 +1,26 @@
+# Julia
+*.jl.cov
+*.jl.mem
+*.jl.~
+*.jld
+*.jld2
+*.h5
+*.hdf5
+*.mat
+*.npz
+
+# Package manager / build artifacts
+Manifest.toml
+
+# Local environment / editor
+.vscode/
+.DS_Store
+
+# CUDD build artifacts and local deps
+/deps/usr/
+/deps/build/
+/deps/cudd-src/
+/deps/deps.jl
+
+# Logs
+*.log

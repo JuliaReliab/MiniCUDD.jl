@@ -40,6 +40,7 @@ export Manager, BDDNode, var, const1, const0,
        minterms, dag_size, close!, quit
 export then_ptr, else_ptr, bdd_then, bdd_else
 export node_index, isconstant
+export node_count, peak_node_count, memory_in_use, max_memory
 
 mutable struct DdManager end
 mutable struct DdNode    end
@@ -296,5 +297,33 @@ Return true if `n` is a terminal constant node.
 function isconstant(n::BDDNode)::Bool
     return ccall((:Cudd_IsConstant, libcudd), Cint, (Ptr{DdNode},), n.ptr) != 0
 end
+
+"""node_count(mgr)
+
+Return the current number of live nodes in the manager.
+"""
+node_count(m::Manager)::Clong =
+    ccall((:Cudd_ReadNodeCount, libcudd), Clong, (Ptr{DdManager},), m.ptr)
+
+"""peak_node_count(mgr)
+
+Return the peak number of live nodes since program start.
+"""
+peak_node_count(m::Manager)::Clong =
+    ccall((:Cudd_ReadPeakNodeCount, libcudd), Clong, (Ptr{DdManager},), m.ptr)
+
+"""memory_in_use(mgr)
+
+Return the current memory usage in bytes allocated by the manager.
+"""
+memory_in_use(m::Manager)::Csize_t =
+    ccall((:Cudd_ReadMemoryInUse, libcudd), Csize_t, (Ptr{DdManager},), m.ptr)
+
+"""max_memory(mgr)
+
+Return the maximum allowed memory usage (limit) in bytes.
+"""
+max_memory(m::Manager)::Csize_t =
+    ccall((:Cudd_ReadMaxMemory, libcudd), Csize_t, (Ptr{DdManager},), m.ptr)
 
 end

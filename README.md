@@ -84,6 +84,7 @@ API highlights
 - Constants: `const1(mgr)`, `const0(mgr)`
 - Boolean ops: `bdd_and`, `bdd_or`, `bdd_xor`, `bdd_implies`, `bdd_ite`
 - Utilities: `minterms`, `dag_size`, `node_index`, `isconstant`
+- Manager stats: `node_count`, `peak_node_count`, `memory_in_use`, `max_memory`
 - Child accessors: `bdd_then`, `bdd_else`, `then_ptr`, `else_ptr`
 - Resource management: `close!(node)`, `quit(mgr)`
 
